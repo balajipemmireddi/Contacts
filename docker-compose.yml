@@ -13,7 +13,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=root
       - DB_DIALECT=org.hibernate.dialect.PostgreSQLDialect
-      - FRONTEND_URL=https://sitelive.in
+      - FRONTEND_URL=https://sitelive.in,http://localhost:5173
       - PORT=8080
       - SECURITY_USER=sujal
       - SECURITY_PASSWORD=sujal
