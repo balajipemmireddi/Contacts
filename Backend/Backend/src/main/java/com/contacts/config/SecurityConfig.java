@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())  
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/login","/register").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/contacts/**").authenticated()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())

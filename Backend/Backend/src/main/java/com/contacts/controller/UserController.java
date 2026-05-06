@@ -26,4 +26,9 @@ public class UserController {
         return userService.verify(user);
     }
 
+    @GetMapping("/api/admin/users")
+    public java.util.List<Users> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
 }
