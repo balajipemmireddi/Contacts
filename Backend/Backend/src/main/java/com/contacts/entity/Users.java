@@ -106,6 +106,8 @@ public class Users {
     @CreatedDate
     private LocalDate createdDate;
 
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Contact> contacts = new ArrayList<>();
     
 
 }
