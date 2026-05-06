@@ -17,8 +17,10 @@ public class Contact {
     private String phoneNumber;
     @Column(nullable = true)
     private String address;
-    @Column(nullable = true)
-    private boolean isFavorite;
+    
+    // Renamed from isFavorite to favorite to fix mapping bugs
+    @Column(nullable = false)
+    private boolean favorite;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

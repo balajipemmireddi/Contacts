@@ -14,5 +14,5 @@ public class ContactDto {
     private String email;
     private String phoneNumber;
     private String address;
-    private boolean isFavorite;
+    private boolean favorite; // Renamed to match entity
 }

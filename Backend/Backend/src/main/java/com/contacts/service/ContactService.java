@@ -56,7 +56,7 @@ public class ContactService {
         Users user = userRepo.findByEmail(email);
         Contact contact = contactRepo.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Contact not found with id: " + id));
-        contact.setFavorite(!contact.isFavorite());
+        contact.setFavorite(!contact.isFavorite()); // matches renamed field
         return mapToDto(contactRepo.save(contact));
     }
 
@@ -76,7 +76,7 @@ public class ContactService {
                 contact.getEmail(),
                 contact.getPhoneNumber(),
                 contact.getAddress(),
-                contact.isFavorite()
+                contact.isFavorite() // Lombok boolean getter
         );
     }
 
@@ -86,6 +86,6 @@ public class ContactService {
         contact.setEmail(dto.getEmail());
         contact.setPhoneNumber(dto.getPhoneNumber());
         contact.setAddress(dto.getAddress());
-        contact.setFavorite(dto.isFavorite());
+        contact.setFavorite(dto.isFavorite()); // Lombok boolean getter
     }
 }

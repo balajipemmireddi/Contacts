@@ -21,7 +21,7 @@ export default function DashBoard() {
     email: "",
     phoneNumber: "",
     address: "",
-    isFavorite: false
+    favorite: false
   });
 
   const fetchContacts = async () => {
@@ -104,7 +104,7 @@ export default function DashBoard() {
     try {
       await toggleFavorite(id);
       // Optimistic update
-      setContacts(contacts.map(c => c.id === id ? { ...c, isFavorite: !c.isFavorite } : c));
+      setContacts(contacts.map(c => c.id === id ? { ...c, favorite: !c.favorite } : c));
     } catch (err) {
       console.error("Favorite toggle failed", err);
     }
@@ -227,8 +227,8 @@ export default function DashBoard() {
             <Form.Check 
               type="switch"
               label="Mark as Favorite"
-              checked={formData.isFavorite}
-              onChange={e => setFormData({...formData, isFavorite: e.target.checked})}
+              checked={formData.favorite}
+              onChange={e => setFormData({...formData, favorite: e.target.checked})}
             />
           </Modal.Body>
           <Modal.Footer className="border-0 p-4 pt-0">
