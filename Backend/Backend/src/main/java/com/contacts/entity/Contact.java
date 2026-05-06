@@ -1,5 +1,7 @@
 package com.contacts.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -7,6 +9,7 @@ import lombok.Data;
 @Data
 public class Contact {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String firstName;
     private String lastName;
@@ -18,7 +21,8 @@ public class Contact {
     private String Address;
     @Column(nullable = true)
     private boolean isFavorite;
-
+    
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Users user;
