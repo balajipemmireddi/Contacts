@@ -2,6 +2,7 @@ package com.contacts.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Data
@@ -18,7 +19,7 @@ public class Contact {
     @Column(nullable = true)
     private String address;
     
-    // Map the new Java field name 'favorite' to the existing database column 'is_favorite'
+    @JsonProperty("favorite")
     @Column(name = "is_favorite", nullable = false)
     private boolean favorite;
 

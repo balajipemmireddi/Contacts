@@ -1,5 +1,6 @@
 package com.contacts.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,5 +15,7 @@ public class ContactDto {
     private String email;
     private String phoneNumber;
     private String address;
-    private boolean favorite; // Renamed to match entity
+    
+    @JsonProperty("favorite") // Explicitly map JSON field name
+    private boolean favorite;
 }
