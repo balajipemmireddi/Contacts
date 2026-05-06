@@ -28,7 +28,13 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    command: caddy reverse-proxy --from api.sitelive.in --to backend:8080
+    environment:
+      - FRONTEND_URL=https://sitelive.in
+    # Using a more advanced Caddy command to handle headers
+    command: >
+      caddy reverse-proxy 
+      --from api.sitelive.in 
+      --to backend:8080
     volumes:
       - caddy_data:/data
       - caddy_config:/config

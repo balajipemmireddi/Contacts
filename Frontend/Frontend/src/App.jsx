@@ -4,7 +4,6 @@ import { AuthContext } from "./context/authContext";
 import DashBoard from "./pages/DashBoard";
 import Login from "./pages/LoginPage";
 import Signup from "./pages/SignupPage";
-import Home from "./pages/Home";
 import ProfilePage from "./pages/ProfilePage";
 import Sidebar from "./components/Sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -13,7 +12,7 @@ import "./index.css";
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
-  return user ? children : <Navigate to="/" />;
+  return user ? children : <Navigate to="/login" />;
 };
 
 function App() {
@@ -32,7 +31,7 @@ function App() {
         <main className="flex-grow-1 p-4" style={{ overflowX: 'hidden' }}>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Home />} />
+            <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
             <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
 
@@ -54,7 +53,7 @@ function App() {
             } />
 
             {/* Catch All */}
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </main>
       </div>
