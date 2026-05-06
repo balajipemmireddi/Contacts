@@ -18,8 +18,8 @@ public class Contact {
     @Column(nullable = true)
     private String address;
     
-    // Renamed from isFavorite to favorite to fix mapping bugs
-    @Column(nullable = false)
+    // Map the new Java field name 'favorite' to the existing database column 'is_favorite'
+    @Column(name = "is_favorite", nullable = false)
     private boolean favorite;
 
     @ManyToOne(fetch = FetchType.LAZY)
