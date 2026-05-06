@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppNavbar from "./components/Navbar";
-
+import Sidebar from "./components/Sidebar";
 import Login from "./pages/LoginPage";
 import Signup from "./pages/SignupPage";
 import DashBoard from "./pages/DashBoard";
-import AdminDashboard from "./pages/AdminDashboard"; 
+import AdminDashboard from "./pages/AdminDashboard";
+import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function Home() {
@@ -14,24 +14,51 @@ function Home() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppNavbar />
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<DashBoard />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Routes>
+        </div>
+      </div>
+    </BrowserRouter>
+  );
+}
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<DashBoard />} />
+import Sidebar from "./components/Sidebar";
+import Login from "./pages/LoginPage";
+import Signup from "./pages/SignupPage";
+import DashBoard from "./pages/DashBoard";
+import AdminDashboard from "./pages/AdminDashboard";
+import ProfilePage from "./pages/ProfilePage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />  
+function Home() {
+  return <h1>Home</h1>;
+}
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-      </Routes>
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<DashBoard />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Routes>
+        </div>
+      </div>
     </BrowserRouter>
   );
 }
