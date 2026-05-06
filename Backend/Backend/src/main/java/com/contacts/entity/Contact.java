@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class Contact {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String firstName;
     private String lastName;
@@ -15,7 +16,7 @@ public class Contact {
     @Column(unique = true)
     private String phoneNumber;
     @Column(nullable = true)
-    private String Address;
+    private String address;
     @Column(nullable = true)
     private boolean isFavorite;
 
