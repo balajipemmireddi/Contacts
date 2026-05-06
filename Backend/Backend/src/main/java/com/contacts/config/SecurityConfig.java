@@ -1,4 +1,3 @@
-
 package com.contacts.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private JwtFilte jwtFilter;
+    private JwtFilter jwtFilter;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -52,7 +51,6 @@ public class SecurityConfig {
                         .requestMatchers("/login","/register").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/contacts/**").authenticated()
-                        .requestMatchers("/api/profile").authenticated()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
 

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend/Backend
+      dockerfile: Dockerfile
+    image: contact-backend:latest
+    container_name: contact-backend
+    environment:
+      - DB_URL=jdbc:postgresql://db:5432/contacts_b?sslmode=disable
+      - DB_DRIVER=org.postgresql.Driver
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=root
+      - DB_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - FRONTEND_URL=https://sitelive.in
+      - PORT=8080
+      - SECURITY_USER=sujal
+      - SECURITY_PASSWORD=sujal
+    depends_on:
+      - db
+    restart: always
+
+  caddy:
+    image: docker.io/library/caddy:latest
+    container_name: contact-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from api.sitelive.in --to backend:8080
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+
+  db:
+    image: docker.io/library/postgres:15-alpine
+    container_name: contact-db
+    environment:
+      POSTGRES_DB: contacts_b
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

@@ -1,12 +1,18 @@
-import { useContext, useEffect, useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/authContext";
-import { Container, Button, Modal, Form, Row, Col, Toast } from "react-bootstrap";
-import { getAllContacts, addContact, updateContact, deleteContact, toggleFavorite } from "../services/ContactService";
+import { getAllContacts, addContact, updateContact, deleteContact, toggleFavorite, searchContacts } from "../services/ContactService";
+import { Container, Row, Col, Button, Form, Modal, InputGroup, Spinner, Alert } from "react-bootstrap";
+import { FiPlus, FiSearch, FiRefreshCw, FiUserPlus } from "react-icons/fi";
 import ContactCard from "../components/ContactCard";
 
 export default function DashBoard() {
   const { user } = useContext(AuthContext);
   const [contacts, setContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Modal States
   const [showModal, setShowModal] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
   const [formData, setFormData] = useState({
@@ -14,40 +20,46 @@ export default function DashBoard() {
     lastName: "",
     email: "",
     phoneNumber: "",
-    address: ""
+    address: "",
+    isFavorite: false
   });
-  const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
 
-  const showToast = (msg, type = "success") => {
-    setToast({ show: true, msg, type });
-  };
-
-  // Load contacts on mount
-  useEffect(() => {
-    loadContacts();
-  }, []);
-
-  const loadContacts = async () => {
+  const fetchContacts = async () => {
+    setLoading(true);
     try {
       const data = await getAllContacts();
       setContacts(data);
+      setError(null);
     } catch (err) {
-      console.error("Failed to load contacts:", err);
-      const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Failed to load contacts";
-      showToast(errorMsg, "danger");
+      setError("Failed to load contacts. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleShowModal = (contact = null) => {
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const handleSearch = async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.length > 2) {
+      try {
+        const results = await searchContacts(query);
+        setContacts(results);
+      } catch (err) {
+        console.error("Search failed", err);
+      }
+    } else if (query.length === 0) {
+      fetchContacts();
+    }
+  };
+
+  const handleOpenModal = (contact = null) => {
     if (contact) {
       setEditingContact(contact);
-      setFormData({
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        email: contact.email,
-        phoneNumber: contact.phoneNumber,
-        address: contact.address || ""
-      });
+      setFormData(contact);
     } else {
       setEditingContact(null);
       setFormData({
@@ -55,19 +67,11 @@ export default function DashBoard() {
         lastName: "",
         email: "",
         phoneNumber: "",
-        address: ""
+        address: "",
+        isFavorite: false
       });
     }
     setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingContact(null);
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -75,17 +79,13 @@ export default function DashBoard() {
     try {
       if (editingContact) {
         await updateContact(editingContact.id, formData);
-        showToast("Contact updated successfully", "success");
       } else {
         await addContact(formData);
-        showToast("Contact added successfully", "success");
       }
-      loadContacts();
-      handleCloseModal();
+      setShowModal(false);
+      fetchContacts();
     } catch (err) {
-      console.error("Failed to save contact:", err);
-      const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Failed to save contact";
-      showToast(errorMsg, "danger");
+      alert("Error saving contact");
     }
   };
 
@@ -93,10 +93,9 @@ export default function DashBoard() {
     if (window.confirm("Are you sure you want to delete this contact?")) {
       try {
         await deleteContact(id);
-        showToast("Contact deleted successfully", "success");
-        loadContacts();
+        fetchContacts();
       } catch (err) {
-        showToast("Failed to delete contact", "danger");
+        alert("Error deleting contact");
       }
     }
   };
@@ -104,129 +103,142 @@ export default function DashBoard() {
   const handleToggleFavorite = async (id) => {
     try {
       await toggleFavorite(id);
-      loadContacts();
+      // Optimistic update
+      setContacts(contacts.map(c => c.id === id ? { ...c, isFavorite: !c.isFavorite } : c));
     } catch (err) {
-      showToast("Failed to toggle favorite", "danger");
+      console.error("Favorite toggle failed", err);
     }
   };
 
   return (
-    <Container className="mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <Container fluid>
+      <header className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 animate-fade-in">
         <div>
-          <h2 style={{ color: 'var(--accent)' }}>My Contacts</h2>
-          <p className="text-muted">Welcome, {user?.email}</p>
+          <h2 className="fw-bold mb-1">My Contacts</h2>
+          <p className="text-muted mb-0">Manage your network efficiently</p>
         </div>
-        <Button variant="primary" onClick={() => handleShowModal()}>
-          + Add Contact
-        </Button>
-      </div>
+        <div className="d-flex gap-2">
+          <InputGroup style={{ width: '300px' }}>
+            <InputGroup.Text className="bg-white border-end-0">
+              <FiSearch className="text-muted" />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search contacts..."
+              className="border-start-0"
+              value={searchQuery}
+              onChange={handleSearch}
+            />
+          </InputGroup>
+          <Button className="btn-premium" onClick={() => handleOpenModal()}>
+            <FiPlus size={20} /> Add Contact
+          </Button>
+        </div>
+      </header>
 
-      {contacts.length === 0 ? (
-        <div className="glass-card p-5 text-center">
-          <h4>No contacts yet</h4>
-          <p className="text-muted">Click "Add Contact" to create your first contact</p>
+      {error && <Alert variant="danger" className="rounded-4">{error}</Alert>}
+
+      {loading ? (
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-3 text-muted">Loading your contacts...</p>
         </div>
-      ) : (
-        <Row>
-          {contacts.map((contact) => (
-            <Col key={contact.id} md={4} className="mb-3">
-              <ContactCard
-                contact={contact}
-                onEdit={handleShowModal}
+      ) : contacts.length > 0 ? (
+        <Row className="g-4">
+          {contacts.map(contact => (
+            <Col key={contact.id} xs={12} sm={6} lg={4} xl={3}>
+              <ContactCard 
+                contact={contact} 
+                onEdit={handleOpenModal} 
                 onDelete={handleDelete}
                 onToggleFavorite={handleToggleFavorite}
               />
             </Col>
           ))}
         </Row>
+      ) : (
+        <div className="text-center py-5 glass-card">
+          <div className="d-inline-flex p-4 rounded-circle bg-light text-muted mb-4">
+            <FiUserPlus size={48} />
+          </div>
+          <h3>No Contacts Found</h3>
+          <p className="text-muted mb-4">Start by adding your first contact to the list!</p>
+          <Button variant="primary" className="rounded-pill px-4" onClick={() => handleOpenModal()}>
+            Add First Contact
+          </Button>
+        </div>
       )}
 
-      {/* Add/Edit Contact Modal */}
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>{editingContact ? "Edit Contact" : "Add Contact"}</Modal.Title>
+      {/* Add/Edit Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered contentClassName="glass-card border-0">
+        <Modal.Header closeButton className="border-0 p-4 pb-0">
+          <Modal.Title className="fw-bold">
+            {editingContact ? "Edit Contact" : "Add New Contact"}
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body className="p-4">
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label className="small fw-medium">First Name</Form.Label>
+                  <Form.Control 
+                    required
+                    value={formData.firstName}
+                    onChange={e => setFormData({...formData, firstName: e.target.value})}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label className="small fw-medium">Last Name</Form.Label>
+                  <Form.Control 
+                    required
+                    value={formData.lastName}
+                    onChange={e => setFormData({...formData, lastName: e.target.value})}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
             <Form.Group className="mb-3">
-              <Form.Label>First Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Last Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
+              <Form.Label className="small fw-medium">Email Address</Form.Label>
+              <Form.Control 
                 type="email"
-                name="email"
                 value={formData.email}
-                onChange={handleChange}
-                required
+                onChange={e => setFormData({...formData, email: e.target.value})}
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
-              <Form.Label>Phone Number</Form.Label>
-              <Form.Control
-                type="tel"
-                name="phoneNumber"
+              <Form.Label className="small fw-medium">Phone Number</Form.Label>
+              <Form.Control 
+                required
                 value={formData.phoneNumber}
-                onChange={handleChange}
-                required
-                style={{ color: '#000' }}
+                onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
-              <Form.Label>Address (Optional)</Form.Label>
-              <Form.Control
-                type="text"
-                name="address"
+              <Form.Label className="small fw-medium">Address</Form.Label>
+              <Form.Control 
+                as="textarea"
+                rows={2}
                 value={formData.address}
-                onChange={handleChange}
+                onChange={e => setFormData({...formData, address: e.target.value})}
               />
             </Form.Group>
-
-            <div className="d-flex justify-content-end gap-2">
-              <Button variant="secondary" onClick={handleCloseModal}>
-                Cancel
-              </Button>
-              <Button variant="primary" type="submit">
-                {editingContact ? "Update" : "Add"}
-              </Button>
-            </div>
-          </Form>
-        </Modal.Body>
+            <Form.Check 
+              type="switch"
+              label="Mark as Favorite"
+              checked={formData.isFavorite}
+              onChange={e => setFormData({...formData, isFavorite: e.target.checked})}
+            />
+          </Modal.Body>
+          <Modal.Footer className="border-0 p-4 pt-0">
+            <Button variant="light" onClick={() => setShowModal(false)} className="rounded-pill">Cancel</Button>
+            <Button variant="primary" type="submit" className="rounded-pill px-4">
+              {editingContact ? "Save Changes" : "Create Contact"}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
-
-      {/* Toast Notification */}
-      <Toast
-        show={toast.show}
-        onClose={() => setToast({ ...toast, show: false })}
-        delay={3000}
-        autohide
-        bg={toast.type}
-        style={{ position: "fixed", top: 20, right: 20, zIndex: 9999 }}
-      >
-        <Toast.Body className="text-white">{toast.msg}</Toast.Body>
-      </Toast>
     </Container>
   );
 }

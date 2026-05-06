@@ -3,6 +3,7 @@ package com.contacts.service;
 import com.contacts.dto.ContactDto;
 import com.contacts.entity.Contact;
 import com.contacts.entity.Users;
+import com.contacts.exception.ResourceNotFoundException;
 import com.contacts.repository.ContactRepo;
 import com.contacts.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class ContactService {
     public ContactDto updateContact(String email, Long id, ContactDto dto) {
         Users user = userRepo.findByEmail(email);
         Contact contact = contactRepo.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new RuntimeException("Contact not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Contact not found with id: " + id));
         mapToEntity(dto, contact);
         return mapToDto(contactRepo.save(contact));
     }
@@ -47,29 +48,22 @@ public class ContactService {
     public void deleteContact(String email, Long id) {
         Users user = userRepo.findByEmail(email);
         Contact contact = contactRepo.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new RuntimeException("Contact not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Contact not found with id: " + id));
         contactRepo.delete(contact);
     }
 
     public ContactDto toggleFavorite(String email, Long id) {
         Users user = userRepo.findByEmail(email);
         Contact contact = contactRepo.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new RuntimeException("Contact not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Contact not found with id: " + id));
         contact.setFavorite(!contact.isFavorite());
         return mapToDto(contactRepo.save(contact));
     }
 
     public List<ContactDto> searchContacts(String email, String query) {
         Users user = userRepo.findByEmail(email);
-        String q = query.toLowerCase();
-        return contactRepo.findByUserId(user.getId())
+        return contactRepo.searchContacts(user.getId(), query)
                 .stream()
-                .filter(c -> 
-                    (c.getFirstName() != null && c.getFirstName().toLowerCase().contains(q)) ||
-                    (c.getLastName() != null && c.getLastName().toLowerCase().contains(q)) ||
-                    (c.getEmail() != null && c.getEmail().toLowerCase().contains(q)) ||
-                    (c.getPhoneNumber() != null && c.getPhoneNumber().contains(q))
-                )
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }

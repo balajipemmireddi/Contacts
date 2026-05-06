@@ -1,56 +1,65 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useContext } from "react";
-import { Link } from "react-router-dom";
 import { AuthContext } from "./context/authContext";
-import Sidebar from "./components/Sidebar";
+import DashBoard from "./pages/DashBoard";
 import Login from "./pages/LoginPage";
 import Signup from "./pages/SignupPage";
-import DashBoard from "./pages/DashBoard";
-import AdminDashboard from "./pages/AdminDashboard";
+import Home from "./pages/Home";
 import ProfilePage from "./pages/ProfilePage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import Sidebar from "./components/Sidebar";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./index.css";
 
-function Home() {
-  const { isAuthenticated } = useContext(AuthContext);
-  
-  if (isAuthenticated) {
-    return (
-      <div className="glass-card p-5 text-center" style={{ maxWidth: '600px', margin: '2rem auto' }}>
-        <h1 style={{ color: 'var(--accent)' }}>Welcome to Contacts Manager</h1>
-        <p className="mt-3">You are logged in. Navigate using the sidebar to manage your contacts.</p>
-        <Link to="/dashboard" className="btn btn-primary mt-3">Go to Dashboard</Link>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="glass-card p-5 text-center" style={{ maxWidth: '600px', margin: '2rem auto' }}>
-      <h1 style={{ color: 'var(--accent)' }}>Welcome to Contacts Manager</h1>
-      <p className="mt-3">Please login or signup to manage your contacts.</p>
-      <div className="mt-4">
-        <Link to="/login" className="btn btn-primary me-3">Login</Link>
-        <Link to="/signup" className="btn btn-outline-primary">Signup</Link>
-      </div>
-    </div>
-  );
-}
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/" />;
+};
 
-export default function App() {
+function App() {
+  const { user } = useContext(AuthContext);
+
   return (
-    <BrowserRouter>
-      <div className="app-container">
-        <Sidebar />
-        <div className="main-content">
+    <Router basename="/ContactHub">
+      <div className="d-flex" style={{ minHeight: "100vh" }}>
+        {/* Sidebar only for authenticated users */}
+        {user && (
+          <aside className="glass-card m-3 position-sticky top-0" style={{ width: "var(--sidebar-width)", height: "calc(100vh - 32px)" }}>
+            <Sidebar />
+          </aside>
+        )}
+
+        <main className="flex-grow-1 p-4" style={{ overflowX: 'hidden' }}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashBoard /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            {/* Public Routes */}
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Home />} />
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+            <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
+
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashBoard />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                {user?.role === "ADMIN" ? <div>Admin Panel (Work in Progress)</div> : <Navigate to="/dashboard" />}
+              </ProtectedRoute>
+            } />
+
+            {/* Catch All */}
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </div>
+        </main>
       </div>
-    </BrowserRouter>
+    </Router>
   );
 }
+
+export default App;

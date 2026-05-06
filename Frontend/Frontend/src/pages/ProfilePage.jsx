@@ -1,33 +1,76 @@
-import { useEffect, useState, useContext } from 'react';
-import { AuthContext } from '../context/authContext';
-import API from '../api/axios';
+import { useContext } from "react";
+import { AuthContext } from "../context/authContext";
+import { Container, Card, Row, Col, Badge } from "react-bootstrap";
+import { FiUser, FiMail, FiShield, FiCalendar } from "react-icons/fi";
 
 export default function ProfilePage() {
-  const { user, token } = useContext(AuthContext);
-  const [profile, setProfile] = useState(null);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await API.get('/api/profile');
-        setProfile(res.data);
-      } catch (e) {
-        console.error('Failed to load profile', e);
-      }
-    };
-    fetchProfile();
-  }, []);
-
-  if (!profile) return <p className="text-center mt-5">Loading profile…</p>;
+  const { user } = useContext(AuthContext);
 
   return (
-    <div className="glass-card p-5" style={{ maxWidth: '500px', margin: '2rem auto' }}>
-      <h2 className="mb-4 text-center" style={{ color: 'var(--accent)' }}>Your Profile</h2>
-      <p><strong>First Name:</strong> {profile.firstName}</p>
-      <p><strong>Last Name:</strong> {profile.lastName}</p>
-      <p><strong>Email:</strong> {profile.email}</p>
-      <p><strong>Role:</strong> {profile.role}</p>
-      <p><strong>Joined:</strong> {new Date(profile.createdDate).toLocaleDateString()}</p>
-    </div>
+    <Container className="py-4">
+      <header className="mb-5 animate-fade-in">
+        <h2 className="fw-bold">My Profile</h2>
+        <p className="text-muted">Manage your personal account settings</p>
+      </header>
+
+      <Row>
+        <Col lg={8}>
+          <Card className="glass-card border-0 p-4 mb-4">
+            <div className="d-flex align-items-center gap-4 mb-5 pb-4 border-bottom">
+              <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: 80, height: 80 }}>
+                <FiUser size={40} />
+              </div>
+              <div>
+                <h3 className="fw-bold mb-1">{user?.email?.split('@')[0]}</h3>
+                <Badge bg="primary" className="rounded-pill px-3 py-2">
+                  <FiShield className="me-2" />
+                  {user?.role} Account
+                </Badge>
+              </div>
+            </div>
+
+            <Row className="g-4">
+              <Col md={6}>
+                <div className="p-3 rounded-4 bg-light">
+                  <p className="text-muted small mb-1">Email Address</p>
+                  <div className="d-flex align-items-center gap-2 fw-medium">
+                    <FiMail className="text-primary" />
+                    {user?.email}
+                  </div>
+                </div>
+              </Col>
+              <Col md={6}>
+                <div className="p-3 rounded-4 bg-light">
+                  <p className="text-muted small mb-1">Account Role</p>
+                  <div className="d-flex align-items-center gap-2 fw-medium">
+                    <FiShield className="text-primary" />
+                    {user?.role}
+                  </div>
+                </div>
+              </Col>
+              <Col md={6}>
+                <div className="p-3 rounded-4 bg-light">
+                  <p className="text-muted small mb-1">Member Since</p>
+                  <div className="d-flex align-items-center gap-2 fw-medium">
+                    <FiCalendar className="text-primary" />
+                    May 2026
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+
+        <Col lg={4}>
+          <Card className="glass-card border-0 p-4 bg-primary text-white">
+            <h5 className="fw-bold mb-3">Security Tip</h5>
+            <p className="small opacity-75 mb-0">
+              Always ensure your password is unique and not shared with other services. 
+              Contact support if you notice any unusual activity.
+            </p>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 }
