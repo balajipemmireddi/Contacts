@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/login","/register").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/contacts/**").authenticated()
+                        .requestMatchers("/api/profile").authenticated()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
 

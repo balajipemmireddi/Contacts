@@ -82,6 +82,7 @@ export default function Signup() {
             name="password"
             onChange={handleChange}
             required
+            style={{ color: '#000' }}
           />
 
           <Button type="submit" className="w-100">

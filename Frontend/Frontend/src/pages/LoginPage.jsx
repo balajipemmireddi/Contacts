@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { loginUser } from "../services/UserService";
 import { jwtDecode } from "jwt-decode";
 import { Container, Card, Form, Button, Toast } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/authContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const [credentials, setCredentials] = useState({
     email: "",
@@ -40,6 +42,9 @@ export default function Login() {
           role: decoded.role
         })
       );
+
+      // Update AuthContext state
+      login();
 
       showToast("Login Successful ", "success");
 
@@ -78,6 +83,7 @@ export default function Login() {
               setCredentials({ ...credentials, password: e.target.value })
             }
             required
+            style={{ color: '#000' }}
           />
 
           <Button type="submit" className="w-100">
