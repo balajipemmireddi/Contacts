@@ -58,5 +58,9 @@ private JWTService jwtService;
         return usersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    public java.util.List<Users> getAllUsers() {
+        return usersRepository.findAll();
+    }
     
 }
